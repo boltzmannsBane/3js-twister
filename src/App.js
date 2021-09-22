@@ -10,7 +10,7 @@ import {
 import "./App.css";
 
 const settings = {
-  speed: 0.2,
+  speed: 0.1,
   density: 1.5,
   strength: 0.2,
 };
@@ -24,7 +24,7 @@ function App() {
       0.1,
       100
     );
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     ref.current.appendChild(renderer.domElement);
     const geometry = new THREE.IcosahedronBufferGeometry(1, 64);
