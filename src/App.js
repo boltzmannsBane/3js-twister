@@ -1,95 +1,60 @@
-import React, { useRef, Suspense } from "react";
-import { Canvas, extend, useFrame, useLoader } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { shaderMaterial, Icosahedron } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import glsl from "babel-plugin-glsl/macro";
+import {
+  uniforms,
+  vertex as vertexShader,
+  fragment as fragmentShader,
+} from "./shaders";
 import "./App.css";
 
 const settings = {
-  speed: 0.2,
+  speed: 0.1,
   density: 1.5,
   strength: 0.2,
 };
 
-const WaveShaderMaterial = shaderMaterial(
-  // Uniform
-  {
-    uTime: 0,
-    uColor: new THREE.Color(0.0, 0.0, 0.0),
-    uTexture: new THREE.Texture(),
-  },
-  // Vertex Shader
-  glsl`
-    precision mediump float;
- 
-    varying vec2 vUv;
-    varying float vWave;
-
-    uniform float uTime;
-
-    #pragma glslify: snoise3 = require(glsl-noise/simplex/3d);
-
-    void main() {
-      vUv = uv;
-
-      vec3 pos = position;
-      float noiseFreq = 2.0;
-      float noiseAmp = 0.4;
-      vec3 noisePos = vec3(pos.x * noiseFreq + uTime, pos.y, pos.z);
-      pos.z += snoise3(noisePos) * noiseAmp;
-      vWave = pos.z;
-
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);  
-    }
-  `,
-  // Fragment Shader
-  glsl`
-    precision mediump float;
-
-    uniform vec3 uColor;
-    uniform float uTime;
-    uniform sampler2D uTexture;
-
-    varying vec2 vUv;
-    varying float vWave;
-
-    void main() {
-      float wave = vWave * 0.2;
-      vec3 texture = texture2D(uTexture, vUv + wave).rgb;
-      gl_FragColor = vec4(uColor, 1.0); 
-    }
-  `
-);
-
-extend({ WaveShaderMaterial });
-
-const Wave = () => {
-  const ref = useRef();
-  useFrame(({ clock }) => (ref.current.uTime = clock.getElapsedTime()));
-  return (
-    <mesh>
-      <Icosahedron args={[1, 64]}>
-        <waveShaderMaterial ref={ref} uColor="orange" />
-      </Icosahedron>
-    </mesh>
-  );
-};
-
-const Loading = () => <h1>Loading...</h1>;
-
-const Scene = () => {
-  return (
-    <Canvas camera={{ fov: 45, near: 0.1, far: 1000, position: [0, 0, 5] }}>
-      <pointLight position={[10, 10, 10]} />
-      <Suspense fallback={<Loading />}>
-        <Wave />
-      </Suspense>
-    </Canvas>
-  );
-};
-
 function App() {
-  return <Scene></Scene>;
+  useEffect(() => {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    );
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    ref.current.appendChild(renderer.domElement);
+    const geometry = new THREE.IcosahedronBufferGeometry(1, 64);
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        uTime: { value: 0 },
+        uSpeed: { value: 0.2 },
+        uNoiseDensity: { value: 1.5 },
+        uNoiseStrength: { value: 0.2 },
+      },
+      wireframe: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    const clock = new THREE.Clock();
+    camera.position.z = 5;
+    const animate = function () {
+      requestAnimationFrame(animate);
+      mesh.material.uniforms.uTime.value = clock.getElapsedTime();
+      renderer.render(scene, camera);
+    };
+
+    animate();
+  }, []);
+
+  const ref = useRef();
+  return <div ref={ref} />;
 }
 
 export default App;
