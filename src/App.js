@@ -1,19 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
-import glsl from "babel-plugin-glsl/macro";
-import {
-  uniforms,
-  vertex as vertexShader,
-  fragment as fragmentShader,
-} from "./shaders";
+import { vertex as vertexShader, fragment as fragmentShader } from "./shaders";
 import "./App.css";
-
-const settings = {
-  speed: 0.1,
-  density: 1.5,
-  strength: 0.2,
-};
 
 function App() {
   useEffect(() => {
