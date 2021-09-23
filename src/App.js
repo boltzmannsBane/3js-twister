@@ -36,8 +36,10 @@ function App() {
         uSpeed: { value: 0.2 },
         uNoiseDensity: { value: 1.5 },
         uNoiseStrength: { value: 0.2 },
+        uFrequency: { value: 3.0 },
+        uAmplitude: { value: 6.0 },
+        uIntensity: { value: 7.0 },
       },
-      wireframe: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
